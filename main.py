@@ -1,72 +1,56 @@
 import numpy as np
+from time import time
+import linear_models as lm
+import linear_mpc as lmpc
 
-def PxHxPH(A, B, C, D, n):
-    """ Eq 2.3 & 2.4 page 6 """
-    # P = ( A A^2 A^3 A^4 ... A^n ).T
-    Px = np.full((n,*A.shape), A)
-    Px = np.array([ Px[0] ] + [ Px[i]@Px[i+1] for i in range(0,n-1) ])
+m1 = 10.0
+m2 = 5.0
 
-    # H = (    B  0 ... )
-    #     (   AB  B ... )
-    #     ( A^2B AB ... )
-    IPx = np.concatenate((np.eye(A.shape[0])[np.newaxis],Px))
-    Hx = np.empty((n,n,*B.shape))
-    for r in range(Hx.shape[0]):
-        for c in range(0,min(r+1,Hx.shape[1])):
-            Hx[r,c] = IPx[r-c] @ B
+dt = 0.01
+h = np.round(20.0/dt).astype(np.int_)
 
-    # P = ( C CA CA^2 ... CA^n-1 ).T
-    P = np.empty((n,*C.shape))
-    for r in range(P.shape[0]):
-        P[r] = C @ IPx[r]
-
-    # H =
-    H = np.empty((n,n,*D.shape))
-    for r in range(Hx.shape[0]):
-        for c in range(0,min(r+1,Hx.shape[1])):
-            if r == c:
-                H[r,c] = D
-            else:
-                H[r,c] = C @ IPx[r-1-c] @ B
-
-    return Px, Hx, P, H
-
-def predict(Px, Hx, P, H, x0, u):
-    print(Hx, u)
-    print(Hx.shape, u.shape)
-    print(Hx @ u)
-    x = Px @ x0 + Hx @ u
-    y = P @ x0 + H @ u
-    return x, y
-
-x0 = np.zeros((3,1))
-A = np.array([
-    [1,2,3],
-    [4,5,6],
-    [7,8,9]
-])
-B = np.array([
-    [3, 6],
-    [2, 5],
-    [1, 4]
-])
-C = np.array([
-    [2, 3, 4],
-    [5, 6, 7]
-])
-D = np.array([
-    [6, 7],
-    [8, 9]
+x0 = np.array([
+    [0],
+    [0],
+    [0],
+    [0],
 ])
 
-n = 3
+u = np.zeros((1*h, 1)).astype(np.float_)
+u[:5,0] = 0.1
 
-Px, Hx, P, H = PxHxPH(A,B, C, D, n)
+#A, B, C, D = lm.spring_damper(m2, 0.1, 0.01, dt=dt)
+A, B, C, D = lm.overhead_crane(m1, m2, dt=dt)
 
-x0 = np.array([[1], [2], [3]])
-u = np.repeat(np.zeros((2, 1))[np.newaxis], n, axis=0)
+start = time()
+Px, Hx, P, H = lmpc.PxHxPH(A, B, C, D, h)
+#H = np.nan_to_num(H)
+print("PxHxPH took %.5fs" % (time() - start))
 
-x, y = predict(Px, Hx, P, H, x0, u)
+start = time()
+x, y = lmpc.predict(Px, Hx, P, H, x0, u)
+print("predict took %.5fs" % (time() - start))
 
+"""
+print(Px)
+print(Hx)
+print(P)
+"""
+"""
+print(D)
+print(C@B)
+print(C@A@B)
+print(C@A@A@B)
+print(C@A@A@A@B)
+print(H)
+"""
+"""
+print(x0)
 print(x)
 print(y)
+"""
+
+import matplotlib.pyplot as plt
+#plt.plot(x[::2])
+plt.plot(y)
+plt.show()
