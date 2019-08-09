@@ -50,8 +50,13 @@ def predict(Px, Hx, P, H, x0, u):
 def repeat_diag(n, M):
     return np.kron(np.eye(n), M)
 
-def move_block(n, H):
-    pass
+def move_block(h, n, usize, Hx, H):
+    mask = np.eye(h, n)
+    mask[n:,-1] = 1
+    Mb = np.kron(mask, np.eye(usize))
+    Hxb = Hx @ Mb
+    Hb = H @ Mb
+    return Hxb, Hb
 
 def J(x, u, Q, R):
     return 0.5 * (x.T @ Q @ x + u.T @ R @ u)[0,0]
