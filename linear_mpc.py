@@ -46,3 +46,21 @@ def predict(Px, Hx, P, H, x0, u):
     x = Px @ x0 + Hx @ u
     y = P @ x0 + H @ u
     return x, y
+
+def repeat_diag(n, M):
+    return np.kron(np.eye(n), M)
+
+def move_block(n, H):
+    pass
+
+def J(x, u, Q, R):
+    return 0.5 * (x.T @ Q @ x + u.T @ R @ u)[0,0]
+
+def GfTc(x0, Px, Hx, Q, R):
+    G = Hx.T @ Q @ Hx + R
+    fT = x0.T @ Px.T @ Q @ Hx
+    c = x0.T @ (Px.T @ Q @ Px) @ x0 # was not written ax Px.T in paper
+    return G, fT, c
+
+def unconstrained_u(G, fT):
+    return -np.linalg.inv(G) @ fT.T

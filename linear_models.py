@@ -3,7 +3,7 @@ import numpy as np
 def as_float(*args):
     return tuple([arg.astype(np.float_) for arg in args])
 
-def spring_damper(m, k, c, dt=0.01):
+def spring_damper(m, k, c, dt):
     A = np.array([
         [1      , dt     ],
         [-k/m*dt, 1 -c/m ],
@@ -20,7 +20,7 @@ def spring_damper(m, k, c, dt=0.01):
     ])
     return as_float(A, B, C, D)
 
-def overhead_crane(m1, m2, dt=0.01):
+def overhead_crane(m1, m2, dt):
     A = np.array([
         [1, dt, 0            , 0 ],
         [0,  1, m2/(m1+m2)*dt, 0 ],
