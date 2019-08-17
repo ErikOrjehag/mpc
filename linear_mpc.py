@@ -1,7 +1,7 @@
 import numpy as np
 from numba import njit
 
-@njit
+#@njit
 def PxHxPH(A, B, C, D, h):
     """ Eq 2.3 & 2.4 page 6 """
 
@@ -69,3 +69,14 @@ def GfTc(x0, Px, Hx, Q, R):
 
 def unconstrained_u(G, fT):
     return -np.linalg.inv(G) @ fT.T
+
+def constant_reference(A, B, C, x0, yr):
+    Ar = np.vstack((
+        np.hstack((A, np.zeros((A.shape[0], yr.shape[0])))),
+        np.hstack((np.zeros((yr.shape[0], A.shape[1])), np.eye(yr.shape[0])))
+    ))
+    Br = np.vstack((B, np.zeros((yr.shape[0], B.shape[1]))))
+    Cr = np.hstack((C, np.zeros((C.shape[0], yr.shape[0]))))
+    Ce = np.hstack((C, -np.eye(C.shape[0], yr.shape[0])))
+    x0r = np.vstack((x0, yr))
+    return Ar, Br, Cr, Ce, x0r
